@@ -8,12 +8,26 @@ export default class HierarchicalEmbedsPlugin extends Plugin {
 		await this.loadSettings();
 
 		this.registerMarkdownPostProcessor((element, context) => {
-			const spanNode = element.querySelector("span.internal-embed");
-			if (spanNode) {
-				const mo = new MutationObserver((records, observer) => {
-					console.log("Hierarchical Embeds Plugin: detected mutation in embed:", records);
+			// At the time we see "element", it will only have the class "internal-embed".
+			// We need to observe it for class changes to detect when it becomes a "markdown-embed".
+			const spanElement = element.querySelector("span.internal-embed");
+			if (spanElement) {
+				const mutationObserver = new MutationObserver((records, observer) => {
+					for (const record of records) {
+						// Watch for "class" attribute changes.
+						if (record.type === "attributes" && record.attributeName === "class") {
+							if (record.target instanceof HTMLElement && record.target.matches(".markdown-embed")) {
+								// Now we know it's a markdown embed, we can process it.
+								observer.disconnect(); // Stop observing once we've detected the change.
+
+								console.debug("HierarchicalEmbedsPlugin: Processing markdown embed", record.target);
+
+								break;
+							}
+						}
+					}
 				});
-				mo.observe(spanNode, {attributes: true, attributeFilter: ["class"]});
+				mutationObserver.observe(spanElement, {attributes: true, attributeFilter: ["class"]});
 			}
 		});
 
