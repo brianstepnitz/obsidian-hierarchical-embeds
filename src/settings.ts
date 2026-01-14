@@ -1,18 +1,18 @@
 import {App, PluginSettingTab, Setting} from "obsidian";
-import MyPlugin from "./main";
+import HierarchicalEmbedsPlugin from "./main";
 
-export interface MyPluginSettings {
+export interface HierarchicalEmbedsSettings {
 	mySetting: string;
 }
 
-export const DEFAULT_SETTINGS: MyPluginSettings = {
+export const DEFAULT_SETTINGS: HierarchicalEmbedsSettings = {
 	mySetting: 'default'
 }
 
-export class SampleSettingTab extends PluginSettingTab {
-	plugin: MyPlugin;
+export class HierarchicalEmbedsSettingTab extends PluginSettingTab {
+	plugin: HierarchicalEmbedsPlugin;
 
-	constructor(app: App, plugin: MyPlugin) {
+	constructor(app: App, plugin: HierarchicalEmbedsPlugin) {
 		super(app, plugin);
 		this.plugin = plugin;
 	}
