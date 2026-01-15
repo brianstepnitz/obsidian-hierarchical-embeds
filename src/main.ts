@@ -10,24 +10,9 @@ export default class HierarchicalEmbedsPlugin extends Plugin {
 		this.registerMarkdownPostProcessor((element, context) => {
 			// At the time we see "element", it will only have the class "internal-embed".
 			// We need to observe it for class changes to detect when it becomes a "markdown-embed".
-			const spanElement = element.querySelector("span.internal-embed");
-			if (spanElement) {
-				const mutationObserver = new MutationObserver((records, observer) => {
-					for (const record of records) {
-						// Watch for "class" attribute changes.
-						if (record.type === "attributes" && record.attributeName === "class") {
-							if (record.target instanceof HTMLElement && record.target.matches(".markdown-embed")) {
-								// Now we know it's a markdown embed, we can process it.
-								observer.disconnect(); // Stop observing once we've detected the change.
-
-								console.debug("HierarchicalEmbedsPlugin: Processing markdown embed", record.target);
-
-								break;
-							}
-						}
-					}
-				});
-				mutationObserver.observe(spanElement, {attributes: true, attributeFilter: ["class"]});
+			const internalEmbedSpanElement = element.querySelector("span.internal-embed");
+			if (internalEmbedSpanElement) {
+				observeForMarkdownEmbeds(internalEmbedSpanElement);
 			}
 		});
 
@@ -45,4 +30,30 @@ export default class HierarchicalEmbedsPlugin extends Plugin {
 	async saveSettings() {
 		await this.saveData(this.settings);
 	}
+}
+
+function observeForMarkdownEmbeds(internalEmbedSpanElement: Element) {
+	const mutationObserver = new MutationObserver((records, observer) => {
+		for (const record of records) {
+			if (isMarkdownEmbedRecord(record)) {
+				// Now we know it's a markdown embed, we can process it.
+				observer.disconnect(); // Stop observing once we've detected the change.
+				const markdownEmbedSpanElement = record.target as HTMLElement;
+				const markdownPreviewSection = markdownEmbedSpanElement.querySelector("div.markdown-preview-section");
+				
+				console.debug("HierarchicalEmbedsPlugin: Processing markdown embed", record.target);
+
+				break;
+			
+			}
+		}
+	});
+	mutationObserver.observe(internalEmbedSpanElement, {attributes: true, attributeFilter: ["class"]});
+}
+
+function isMarkdownEmbedRecord(record: MutationRecord): boolean {
+	return record.type === "attributes"
+		&& record.attributeName === "class"
+		&& record.target instanceof HTMLElement
+		&& record.target.matches(".markdown-embed");
 }
