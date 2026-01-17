@@ -8,12 +8,21 @@ export default class HierarchicalEmbedsPlugin extends Plugin {
 		await this.loadSettings();
 
 		this.registerMarkdownPostProcessor((element, context) => {
+
+			// Remind me, what elements get passed to the markdown post processor?
+			// console.debug("HierarchicalEmbedsPlugin: Markdown post processor called with element:", element);
+
+			const internalEmbedSpans = element.querySelectorAll("span.internal-embed");
+			if (internalEmbedSpans.length > 0) {
+				console.debug(`HierarchicalEmbedsPlugin: Found ${internalEmbedSpans.length} internal-embed spans:`, internalEmbedSpans);
+			}
+
 			// At the time we see "element", it will only have the class "internal-embed".
 			// We need to observe it for class changes to detect when it becomes a "markdown-embed".
-			const internalEmbedSpanElement = element.querySelector("span.internal-embed");
-			if (internalEmbedSpanElement) {
-				observeForMarkdownEmbeds(internalEmbedSpanElement);
-			}
+			// const internalEmbedSpanElement = element.querySelector("span.internal-embed");
+			// if (internalEmbedSpanElement) {
+			// 	observeForMarkdownEmbeds(internalEmbedSpanElement);
+			// }
 		});
 
 		// This adds a settings tab so the user can configure various aspects of the plugin
